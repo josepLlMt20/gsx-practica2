@@ -1,0 +1,21 @@
+cat > .gitignore << 'EOF'
+# Secrets
+.env
+*.env
+secrets/
+
+# Docker
+*.tar
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+EOF
