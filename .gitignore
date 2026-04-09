@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-cat > .gitignore << 'EOF'
-=======
->>>>>>> 840ba49 (Josep: Add gitignore)
 # Secrets
 .env
 *.env
@@ -21,7 +17,3 @@ secrets/
 
 # OS
 .DS_Store
-<<<<<<< HEAD
-EOF
-=======
->>>>>>> 840ba49 (Josep: Add gitignore)
