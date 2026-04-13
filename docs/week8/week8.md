@@ -13,13 +13,15 @@ Empaquetar aplicacions en contenidors Docker per garantir que funcionen igual en
 
 ## Estructura de fitxers
 
-docker/
-├── nginx/
-│   ├── Dockerfile
-│   └── index.html
-└── app/
-├── Dockerfile
-└── app.py
+gsx-practica2/
+├── docker/
+│   ├── nginx/
+│   │   ├── Dockerfile
+│   │   ├── nginx.conf
+│   │   └── index.html
+│   └── app/
+│       ├── Dockerfile
+│       └── app.py
 
 ## Dockerfile Nginx
 
