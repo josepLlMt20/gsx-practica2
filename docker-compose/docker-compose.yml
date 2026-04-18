@@ -4,17 +4,34 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     networks:
       - gsx-network
+    restart: unless-stopped
 
   app:
     build: ../docker/app
     expose:
       - "8080"
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+    volumes:
+      - app-data:/app/data
     networks:
       - gsx-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
 networks:
   gsx-network:
     driver: bridge
+
+volumes:
+  app-data:
