@@ -1,0 +1,20 @@
+services:
+  nginx:
+    build: ../docker/nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+    networks:
+      - gsx-network
+
+  app:
+    build: ../docker/app
+    expose:
+      - "8080"
+    networks:
+      - gsx-network
+
+networks:
+  gsx-network:
+    driver: bridge
