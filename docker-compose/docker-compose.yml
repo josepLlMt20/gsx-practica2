@@ -17,8 +17,14 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-production}
       - APP_DEBUG=${APP_DEBUG:-false}
-    volumes:
-      - app-data:/app/data
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-greendevcorp}
+      - DB_USER=${DB_USER:-gsx}
+      - DB_PASSWORD=${DB_PASSWORD:-gsx123}
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - gsx-network
     restart: unless-stopped
@@ -27,11 +33,30 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 10s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=${DB_NAME:-greendevcorp}
+      - POSTGRES_USER=${DB_USER:-gsx}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-gsx123}
+    expose:
+      - "5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - gsx-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-gsx} -d ${DB_NAME:-greendevcorp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   gsx-network:
     driver: bridge
 
 volumes:
-  app-data:
+  postgres-data:
