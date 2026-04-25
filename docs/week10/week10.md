@@ -109,3 +109,45 @@ Desplegar l'aplicació en Kubernetes amb escalat automàtic i resiliència.
 | Resiliència | Limitada | Alta |
 | Complexitat | Baixa | Alta |
 | Networking | Simple | Avançat |
+
+## Persistent Storage (Avançat)
+
+### Fitxers
+
+    kubernetes/
+    └── postgres-storage.yaml   # PV + PVC
+
+### Recursos
+
+| Tipus | Nom | Capacitat |
+|-------|-----|-----------|
+| PersistentVolume | postgres-pv | 1Gi |
+| PersistentVolumeClaim | postgres-pvc | 1Gi |
+
+### Comandes
+
+    # Veure PV i PVC
+    kubectl get pv
+    kubectl get pvc
+
+    # Comprovar que estan "Bound"
+    kubectl get pv,pvc
+
+### Prova de persistència
+
+1. Fer visites a l'API: total_visits = 22
+2. Eliminar pod postgres: kubectl delete pod -l app=postgres
+3. Esperar que es recreï
+4. Reiniciar app: kubectl rollout restart deployment app
+5. Comprovar visites: total_visits = 26 ✅
+
+Les dades sobreviuen a reinicis de pods!
+
+### Conceptes
+
+| Concepte | Descripció |
+|----------|------------|
+| PersistentVolume (PV) | Emmagatzematge físic al cluster |
+| PersistentVolumeClaim (PVC) | Sol·licitud d'emmagatzematge per un pod |
+| Bound | PV i PVC connectats correctament |
+| hostPath | Emmagatzematge al node (només per dev/test) |
