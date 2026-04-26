@@ -93,6 +93,34 @@ services:
       timeout: 5s
       retries: 5
 
+  loki:
+    image: grafana/loki:latest
+    expose:
+      - "3100"
+    networks:
+      - gsx-network
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - gsx-network
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 networks:
   gsx-network:
     driver: bridge

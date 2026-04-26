@@ -144,3 +144,42 @@ Xarxa privada amb rang d'IPs personalitzat.
 | Logging amb límits | Evitar que logs omplin el disc |
 | Resource limits | Evitar que un servei consumeixi tots els recursos |
 | Custom network | Aïllament i control del rang d'IPs |
+
+
+## Loki + Grafana (Logging centralitzat)
+
+### Serveis afegits
+
+| Servei | Imatge | Port | Funció |
+|--------|--------|------|--------|
+| loki | grafana/loki:latest | 3100 (intern) | Recollida de logs |
+| grafana | grafana/grafana:latest | 3000 | Visualització de logs |
+
+### Arquitectura
+
+    [nginx] ──logs──▶ json-file
+    [app]   ──logs──▶ json-file
+
+    [loki]  ◀──connectat──▶ [grafana]
+
+### Accés a Grafana
+
+    http://localhost:3000
+    Usuari: admin
+    Contrasenya: admin (okoscuncus11)
+
+### Configuració de Loki a Grafana
+
+1. Connections → Data sources → Add data source
+2. Seleccionar Loki
+3. URL: http://loki:3100
+4. Save & test
+
+### Notes
+
+El driver de Loki per enviar logs directament des dels contenidors 
+requereix que Loki sigui accessible des de fora de la xarxa Docker. 
+En entorns de producció reals, nginx i app enviarien els logs 
+directament a Loki. En el nostre entorn de desenvolupament amb 
+VirtualBox NAT, els logs es guarden amb json-file i Loki està 
+disponible com a servei centralitzat connectat a Grafana.
