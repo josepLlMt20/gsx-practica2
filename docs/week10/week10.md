@@ -151,3 +151,15 @@ Les dades sobreviuen a reinicis de pods!
 | PersistentVolumeClaim (PVC) | Sol·licitud d'emmagatzematge per un pod |
 | Bound | PV i PVC connectats correctament |
 | hostPath | Emmagatzematge al node (només per dev/test) |
+
+
+## Correcció detectada durant el desplegament
+
+En desplegar i provar l'accés a `/api`, retornava 404. El problema era que la imatge `nginx-gsx:v1` de Docker Hub no eliminava el `default.conf` d'Nginx, que sobreescrivia la nostra configuració del reverse proxy.
+
+**Solució aplicada**: afegir al `Dockerfile` de Nginx:
+```dockerfile
+RUN rm /etc/nginx/conf.d/default.conf
+```
+
+Es va construir una nova imatge `gemmagoitia/nginx-gsx:v2`, es va pujar a Docker Hub i es va actualitzar el manifest `nginx.yml` per usar-la. Després del redesplegament `/api` va funcionar correctament.
