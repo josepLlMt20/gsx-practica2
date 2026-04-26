@@ -10,10 +10,9 @@ services:
       - gsx-network
     restart: unless-stopped
     logging:
-      driver: json-file
+      driver: loki
       options:
-        max-size: "10m"
-        max-file: "3"
+        loki-url: "http://10.0.2.15:3100/loki/api/v1/push"
     deploy:
       resources:
         limits:
@@ -42,10 +41,9 @@ services:
       - gsx-network
     restart: unless-stopped
     logging:
-      driver: json-file
+      driver: loki
       options:
-        max-size: "10m"
-        max-file: "3"
+        loki-url: "http://10.0.2.15:3100/loki/api/v1/push"
     deploy:
       resources:
         limits:
@@ -95,6 +93,8 @@ services:
 
   loki:
     image: grafana/loki:latest
+    ports:
+      - "3100:3100"
     expose:
       - "3100"
     networks:
@@ -115,6 +115,8 @@ services:
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
     logging:
       driver: json-file
       options:
@@ -130,3 +132,4 @@ networks:
 
 volumes:
   postgres-data:
+  grafana-data:

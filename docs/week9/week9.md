@@ -152,34 +152,60 @@ Xarxa privada amb rang d'IPs personalitzat.
 
 | Servei | Imatge | Port | Funció |
 |--------|--------|------|--------|
-| loki | grafana/loki:latest | 3100 (intern) | Recollida de logs |
+| loki | grafana/loki:latest | 3100 | Recollida de logs centralitzada |
 | grafana | grafana/grafana:latest | 3000 | Visualització de logs |
 
 ### Arquitectura
 
-    [nginx] ──logs──▶ json-file
-    [app]   ──logs──▶ json-file
+    [nginx] ──logs──▶ [loki:3100] ◀──consulta──▶ [grafana:3000]
+    [app]   ──logs──▶ [loki:3100]
 
-    [loki]  ◀──connectat──▶ [grafana]
+### Com funciona
+
+Nginx i app envien els seus logs directament a Loki mitjançant el driver `grafana/loki-docker-driver`. Loki els emmagatzema i Grafana els visualitza en temps real.
+
+El driver de Loki s'ha instal·lat a la VM amb:
+
+    sudo docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+
+Configuració del logging a nginx i app:
+
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://10.0.2.15:3100/loki/api/v1/push"
+
+Loki exposa el port 3100 cap a fora perquè el driver hi pugui accedir:
+
+    loki:
+      ports:
+        - "3100:3100"
+
+### Persistència
+
+La configuració de Grafana (fonts de dades, dashboards) es guarda en un volum persistent:
+
+    volumes:
+      grafana-data:
+
+Així no es perd en fer `docker compose down`.
 
 ### Accés a Grafana
 
     http://localhost:3000
     Usuari: admin
-    Contrasenya: admin (okoscuncus11)
+    Contrasenya: (definida a GF_SECURITY_ADMIN_PASSWORD)
 
 ### Configuració de Loki a Grafana
 
 1. Connections → Data sources → Add data source
 2. Seleccionar Loki
-3. URL: http://loki:3100
+3. URL: `http://loki:3100`
 4. Save & test
 
-### Notes
+### Proves realitzades
 
-El driver de Loki per enviar logs directament des dels contenidors 
-requereix que Loki sigui accessible des de fora de la xarxa Docker. 
-En entorns de producció reals, nginx i app enviarien els logs 
-directament a Loki. En el nostre entorn de desenvolupament amb 
-VirtualBox NAT, els logs es guarden amb json-file i Loki està 
-disponible com a servei centralitzat connectat a Grafana.
+1. Loki arrenca i és accessible ✅
+2. Grafana connecta amb Loki ✅
+3. Logs de nginx visibles a Grafana en temps real ✅
+4. Persistència de configuració de Grafana entre reinicis ✅
