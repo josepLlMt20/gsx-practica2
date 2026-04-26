@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: josepllmt20/nginx-gsx:v1
+          image: gemmagoitia/nginx-gsx:v2
           ports:
             - containerPort: 80
           resources:
