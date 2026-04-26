@@ -16,5 +16,6 @@ secrets/
 *.log
 
 # OS
-.DS_Storekubectl
+.DS_Store
+kubectl
 minikube-linux-amd64
