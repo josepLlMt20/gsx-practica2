@@ -14,7 +14,11 @@ spec:
     spec:
       containers:
         - name: nginx
+<<<<<<< Updated upstream
           image: gemmagoitia/nginx-gsx:v2
+=======
+          image: josepllmt20/nginx-gsx:v2
+>>>>>>> Stashed changes
           ports:
             - containerPort: 80
           resources:

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: josepllmt20/app-gsx:v1
+          image: josepllmt20/app-gsx:v2
           ports:
             - containerPort: 8080
           envFrom:
