@@ -114,18 +114,17 @@ Aquesta pràctica implementa una infraestructura cloud-native utilitzant:
 | Setmana | Tema | Estat |
 |---------|------|-------|
 | 8 | Containerització (Docker) | ✅ Completada |
-| 9 | Multi-container (Docker Compose) | 🔄 En progrés |
-| 10 | Orquestració (Kubernetes) | ⬜ Pendent |
+| 9 | Multi-container (Docker Compose) | ✅ Completada |
+| 10 | Orquestració (Kubernetes) | ✅ Completada |
 | 11 | IaC + CI/CD | ⬜ Pendent |
 | 12 | Xarxa i Identitat | ⬜ Pendent |
 | 13 | Integració i Observabilitat | ⬜ Pendent |
 
----
-
 ## Documentació
 
-- [Setmana 8: Docker](docs/week1/week1.md)
-... (altres setmanes a completar)
+- [Setmana 8: Docker](docs/week8/week8.md)
+- [Setmana 9: Docker Compose](docs/week9/week9.md)
+- [Setmana 10: Kubernetes](docs/week10/week10.md)
 
 ---
 
