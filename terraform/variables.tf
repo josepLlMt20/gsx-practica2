@@ -46,3 +46,9 @@ variable "nginx_image" {
   type        = string
   default     = "josepllmt20/nginx-gsx:v2"
 }
+
+variable "nginx_replicas" {
+  description = "Number of nginx replicas"
+  type        = number
+  default     = 1
+}
