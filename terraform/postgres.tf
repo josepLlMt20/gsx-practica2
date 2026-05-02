@@ -1,3 +1,46 @@
+# PersistentVolume
+resource "kubernetes_persistent_volume" "postgres_pv" {
+  metadata {
+    name = "postgres-pv"
+  }
+
+  spec {
+    capacity = {
+      storage = "1Gi"
+    }
+
+    access_modes       = ["ReadWriteOnce"]
+    storage_class_name = "standard"
+
+    persistent_volume_source {
+      host_path {
+        path = "/data/postgres"
+      }
+    }
+  }
+}
+
+# PersistentVolumeClaim
+resource "kubernetes_persistent_volume_claim" "postgres_pvc" {
+  metadata {
+    name = "postgres-pvc"
+  }
+
+  spec {
+    access_modes       = ["ReadWriteOnce"]
+    storage_class_name = "standard"
+
+    resources {
+      requests = {
+        storage = "1Gi"
+      }
+    }
+  }
+
+  depends_on = [kubernetes_persistent_volume.postgres_pv]
+}
+
+
 resource "kubernetes_deployment" "postgres" {
   metadata {
     name = "postgres"
