@@ -155,12 +155,20 @@ if [ "$PLAN_ONLY" = true ]; then
     rm -f tfplan
     exit 0
 fi
+
+# Terraform apply
+echo ""
+echo -e "${YELLOW}[4/5]${NC} Aplicant canvis..."
+read -p "Vols continuar amb $ENV? (y/n): " confirm
 if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
     terraform apply tfplan
     rm -f tfplan
     
     # Esperar que els pods estiguin llestos
     echo ""
+    echo -e "${YELLOW}[5/5]${NC} Esperant pods..."
+    kubectl rollout status deployment/app --timeout=120s
+    kubectl rollout status deployment/nginx --timeout=60s
     
     echo ""
     echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
@@ -168,16 +176,10 @@ if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
     echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
     echo ""
     kubectl get pods
+    echo ""
+    echo -e "${YELLOW}Accés:${NC}"
+    echo "  kubectl port-forward service/nginx 8888:80 --address 0.0.0.0"
 else
     rm -f tfplan
     echo -e "${YELLOW}Cancel·lat${NC}"
-fi    echo ""
-    echo -e "${YELLOW}Accés:${NC}"
-    echo "  kubectl port-forward service/nginx 8888:80 --address 0.0.0.0"
-    echo -e "${YELLOW}[5/5]${NC} Esperant pods..."
-    kubectl rollout status deployment/app --timeout=120s
-    kubectl rollout status deployment/nginx --timeout=60s
-
-echo -e "${YELLOW}[4/5]${NC} Aplicant canvis..."
-read -p "Vols continuar amb $ENV? (y/n): " confirm
-
+fi
