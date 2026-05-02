@@ -5,6 +5,9 @@ FROM nginx:alpine
 LABEL maintainer="Josep Lluís Marín & Gemma Goitia"
 LABEL description="Nginx per GreenDevCorp - GSX Pràctica 2"
 
+# Actualitzar paquets per corregir vulnerabilitats
+RUN apk update && apk upgrade --no-cache
+
 # Copiar configuració personalitzada
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN rm /etc/nginx/conf.d/default.conf
