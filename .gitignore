@@ -19,3 +19,10 @@ secrets/
 .DS_Store
 kubectl
 minikube-linux-amd64
+
+# Terraform plans
+*.tfplan
+tfplan
+
+# Keep tfvars in git (no secrets in these)
+# !terraform/*.tfvars
