@@ -1,111 +1,209 @@
-# GSX Pràctica 2 - Infraestructura IT Organitzacional
+# GSX Practica 2 - Infraestructura IT Organitzacional
 
-Implementació d'una infraestructura moderna containeritzada per GreenDevCorp.
+Implementacio d'una infraestructura moderna containeritzada per GreenDevCorp.
 
-**Assignatura:** Gestió de Sistemes i Xarxes (URV)  
-**Equip:** Josep Lluís Marín & Gemma Goitia  
+**Assignatura:** Gestio de Sistemes i Xarxes (URV)  
+**Equip:** Josep Lluis Marin & Gemma Goitia  
 **Deadline:** 15 Maig 2026
 
 ---
 
-## Descripció
+## Descripcio
 
-Aquesta pràctica implementa una infraestructura cloud-native utilitzant:
-- **Docker** per containerització
-- **Docker Compose** per orquestració multi-contenidor
-- **Kubernetes** per desplegament en producció
-- **Terraform/Ansible** per Infrastructure as Code
+Aquesta practica implementa una infraestructura cloud-native utilitzant:
+- **Docker** per containeritzacio
+- **Docker Compose** per orquestracio multi-contenidor
+- **Kubernetes** per desplegament en produccio
+- **Terraform** per Infrastructure as Code
 - **GitHub Actions** per CI/CD
-
----
-
-## Estructura del projecte
-
-    gsx-practica2/
-    ├── docker/
-    │   ├── nginx/
-    │   │   ├── Dockerfile
-    │   │   ├── nginx.conf
-    │   │   └── index.html
-    │   └── app/
-    │       ├── Dockerfile
-    │       └── app.py
-    ├── docker-compose/
-    │   └── docker-compose.yml
-    ├── kubernetes/
-    ├── terraform/
-    ├── scripts/
-    │   └── build-push.sh
-    └── docs/
-
----
-
-## Inici ràpid
-
-### Requisits
-- Docker instal·lat
-- Docker Compose instal·lat
-- Compte a Docker Hub
-
-### Opció 1: Utilitzar imatges de Docker Hub
-
-    docker pull josepllmt20/nginx-gsx:v1
-    docker pull josepllmt20/app-gsx:v1
-    docker run -d -p 8080:80 --name nginx josepllmt20/nginx-gsx:v1
-    docker run -d -p 8081:8080 --name app josepllmt20/app-gsx:v1
-
-### Opció 2: Build local amb Docker Compose
-
-    cd docker-compose
-    docker compose up --build
-
-### Verificar
-
-    curl http://localhost:8080       # Nginx (pàgina web)
-    curl http://localhost:8080/api   # Backend via reverse proxy
-
----
-
-## Imatges Docker
-
-| Imatge | Descripció | Docker Hub |
-|--------|------------|------------|
-| nginx-gsx | Servidor web + reverse proxy | josepllmt20/nginx-gsx |
-| app-gsx | Backend Python HTTP | josepllmt20/app-gsx |
-
----
-
-## Scripts disponibles
-
-| Script | Descripció |
-|--------|------------|
-| scripts/build-push.sh | Build i push de totes les imatges a Docker Hub |
-
-### Ús
-
-    # Build i push amb versió v1
-    ./scripts/build-push.sh
-
-    # Build i push amb versió específica
-    ./scripts/build-push.sh v2
-
-    # Només build (sense push)
-    ./scripts/build-push.sh v1 --no-push
 
 ---
 
 ## Arquitectura
 
-    ┌─────────────────────────────────────┐
-    │           Docker Network            │
-    │           (gsx-network)             │
-    │                                     │
-    │   ┌─────────┐      ┌─────────┐     │
-    │   │  Nginx  │─────▶│   App   │     │
-    │   │  :80    │      │  :8080  │     │
-    │   └─────────┘      └─────────┘     │
-    │                                     │
-    └─────────────────────────────────────┘
+```
+                    ┌─────────────────────────────────────────────────┐
+                    │              Kubernetes Cluster                 │
+                    │                 (Minikube)                      │
+                    │                                                 │
+  Internet ────────▶│   ┌─────────┐   ┌─────────┐   ┌──────────┐    │
+       :30080       │   │  Nginx  │──▶│   App   │──▶│ Postgres │    │
+                    │   │  :80    │   │  :8080  │   │  :5432   │    │
+                    │   │ (2 rep) │   │ (3 rep) │   │ (1 rep)  │    │
+                    │   └─────────┘   └─────────┘   └────┬─────┘    │
+                    │                                     │          │
+                    │                              ┌──────▼──────┐   │
+                    │                              │ PVC (1Gi)   │   │
+                    │                              └─────────────┘   │
+                    └─────────────────────────────────────────────────┘
+```
+
+---
+
+## Estructura del projecte
+
+```
+gsx-practica2/
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # CI/CD Pipeline
+├── docker/
+│   ├── nginx/
+│   │   ├── Dockerfile
+│   │   ├── nginx.conf
+│   │   └── index.html
+│   └── app/
+│       ├── Dockerfile
+│       └── app.py
+├── docker-compose/
+│   ├── docker-compose.yml
+│   └── .env.example
+├── kubernetes/
+│   ├── configmap.yml
+│   ├── secret.yml
+│   ├── postgres-storage.yml
+│   ├── postgres.yml
+│   ├── app.yml
+│   └── nginx.yml
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── configmap.tf
+│   ├── secret.tf
+│   ├── postgres.tf
+│   ├── app.tf
+│   ├── nginx.tf
+│   ├── dev.tfvars
+│   ├── staging.tfvars
+│   └── prod.tfvars
+├── scripts/
+│   ├── build-push.sh
+│   └── deploy.sh
+└── docs/
+    ├── week8/week8.md
+    ├── week9/week9.md
+    ├── week10/week10.md
+    └── week11/week11.md
+```
+
+---
+
+## Inici rapid
+
+### Requisits
+- Docker
+- Docker Compose
+- Minikube
+- Terraform >= 1.5
+- kubectl
+
+### Opcio 1: Docker Compose (desenvolupament local)
+
+```bash
+cd docker-compose
+cp .env.example .env
+docker compose up --build
+```
+
+Acces:
+- Web: http://localhost:8080
+- API: http://localhost:8080/api
+- Grafana: http://localhost:3000 (admin/admin)
+
+### Opcio 2: Kubernetes amb Terraform (produccio)
+
+```bash
+# Iniciar Minikube
+minikube start
+
+# Desplegar amb l'script
+./scripts/deploy.sh -e dev      # Development
+./scripts/deploy.sh -e staging  # Staging
+./scripts/deploy.sh -e prod     # Production
+
+# O manualment amb Terraform
+cd terraform
+export TF_VAR_db_password="contrasenya_segura"
+terraform init
+terraform apply -var-file="prod.tfvars"
+
+# Accedir al servei
+kubectl port-forward service/nginx 8888:80
+```
+
+---
+
+## Imatges Docker
+
+| Imatge | Descripcio | Docker Hub |
+|--------|------------|------------|
+| nginx-gsx | Servidor web + reverse proxy | [josepllmt20/nginx-gsx](https://hub.docker.com/r/josepllmt20/nginx-gsx) |
+| app-gsx | Backend Python amb PostgreSQL | [josepllmt20/app-gsx](https://hub.docker.com/r/josepllmt20/app-gsx) |
+
+Tags disponibles: `latest`, `stable`, `v1`, `v2`, `sha-xxxxxxx`
+
+---
+
+## CI/CD Pipeline
+
+El pipeline de GitHub Actions s'executa en cada push a `main`:
+
+```
+┌────────────────┐    ┌────────────────┐
+│   Terraform    │    │  Docker Build  │
+│   Validate     │    │  & Push        │
+│  ─────────────│    │ ─────────────  │
+│  - fmt check   │    │ - Buildx cache │
+│  - validate    │    │ - Trivy scan   │
+└───────┬────────┘    │ - SBOM gen     │
+        │             │ - Push Hub     │
+        │             └───────┬────────┘
+        │                     │
+        └──────────┬──────────┘
+                   ▼
+           ┌──────────────┐
+           │   Merge OK   │
+           └──────────────┘
+```
+
+---
+
+## Scripts disponibles
+
+| Script | Descripcio |
+|--------|------------|
+| `scripts/build-push.sh` | Build i push de Docker images |
+| `scripts/deploy.sh` | Desplegament amb Terraform |
+
+### deploy.sh
+
+```bash
+./scripts/deploy.sh [opcions]
+
+Opcions:
+  -e, --env ENV      Environment: dev, staging, prod
+  -t, --tag TAG      Tag de la imatge
+  -p, --plan         Nomes mostra el pla
+  -d, --destroy      Destrueix la infraestructura
+  -s, --status       Mostra l'estat actual
+  -r, --rollback     Rollback a la versio anterior
+
+Exemples:
+  ./scripts/deploy.sh -e dev          # Desplegar a dev
+  ./scripts/deploy.sh -e prod -t v3   # Desplegar v3 a prod
+  ./scripts/deploy.sh -r              # Rollback
+```
+
+---
+
+## Environments
+
+| Environment | Repliques App | Repliques Nginx | Debug | Imatge |
+|-------------|---------------|-----------------|-------|--------|
+| dev | 1 | 1 | true | :latest |
+| staging | 2 | 1 | false | :stable |
+| prod | 3 | 2 | false | :v2 |
 
 ---
 
@@ -113,28 +211,50 @@ Aquesta pràctica implementa una infraestructura cloud-native utilitzant:
 
 | Setmana | Tema | Estat |
 |---------|------|-------|
-| 8 | Containerització (Docker) | ✅ Completada |
-| 9 | Multi-container (Docker Compose) | ✅ Completada |
-| 10 | Orquestració (Kubernetes) | ✅ Completada |
-| 11 | IaC + CI/CD | ⬜ Pendent |
-| 12 | Xarxa i Identitat | ⬜ Pendent |
-| 13 | Integració i Observabilitat | ⬜ Pendent |
+| 8 | Containeritzacio (Docker) | Completada |
+| 9 | Multi-container (Docker Compose) | Completada |
+| 10 | Orquestracio (Kubernetes) | Completada |
+| 11 | IaC + CI/CD (Terraform + GitHub Actions) | Completada |
+| 12 | Xarxa i Identitat | Pendent |
+| 13 | Integracio i Observabilitat | Pendent |
 
-## Documentació
+## Documentacio
 
 - [Setmana 8: Docker](docs/week8/week8.md)
 - [Setmana 9: Docker Compose](docs/week9/week9.md)
 - [Setmana 10: Kubernetes](docs/week10/week10.md)
+- [Setmana 11: IaC + CI/CD](docs/week11/week11.md)
+
+---
+
+## Comandes utils
+
+```bash
+# Estat dels pods
+kubectl get pods -o wide
+
+# Logs en temps real
+kubectl logs -f deployment/app
+
+# Rollback
+kubectl rollout undo deployment/app
+
+# Historial de versions
+kubectl rollout history deployment/app
+
+# Escalar
+kubectl scale deployment/app --replicas=5
+```
 
 ---
 
 ## Autors
 
-- Josep Lluís Marín ([@josepLlMt20](https://github.com/josepLlMt20))
+- Josep Lluis Marin ([@josepLlMt20](https://github.com/josepLlMt20))
 - Gemma Goitia ([@gemmagoitia](https://github.com/gemmagoitia))
 
 ---
 
-## Llicència
+## Llicencia
 
-Projecte acadèmic - URV 2026
+Projecte academic - URV 2026

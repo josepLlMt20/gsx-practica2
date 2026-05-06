@@ -114,7 +114,7 @@ resource "kubernetes_deployment" "postgres" {
 
           readiness_probe {
             exec {
-              command = ["pg_isready", "-U", "gsx", "-d", "greendevcorp"]
+              command = ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
             }
             initial_delay_seconds = 5
             period_seconds        = 10
@@ -122,7 +122,7 @@ resource "kubernetes_deployment" "postgres" {
 
           liveness_probe {
             exec {
-              command = ["pg_isready", "-U", "gsx", "-d", "greendevcorp"]
+              command = ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
             }
             initial_delay_seconds = 30
             period_seconds        = 30
