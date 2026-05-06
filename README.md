@@ -227,7 +227,63 @@ Exemples:
 
 ---
 
-## Comandes utils
+## Deploy des de zero (Clean Start)
+
+Si necessites esborrar tot i tornar a desplegar:
+
+### Pas 1: Netejar
+
+```bash
+# Esborrar Minikube completament
+minikube delete
+
+# (Opcional) Netejar Docker
+docker system prune -a --volumes -f
+```
+
+### Pas 2: Iniciar Minikube
+
+```bash
+minikube start --memory=4096 --cpus=2
+```
+
+### Pas 3: Desplegar amb Terraform
+
+```bash
+cd terraform
+
+# Netejar estat anterior
+rm -rf .terraform terraform.tfstate*
+
+# Inicialitzar i desplegar
+terraform init
+export TF_VAR_db_password="gsx123"
+terraform apply -var-file="dev.tfvars"
+```
+
+### Pas 4: Verificar
+
+```bash
+# Esperar que tots els pods estiguin Ready
+kubectl get pods -w
+
+# Accedir al servei
+kubectl port-forward service/nginx 8080:80 --address 0.0.0.0
+
+# Provar (des d'altra terminal)
+curl http://localhost:8080
+curl http://localhost:8080/api
+```
+
+### Opcio rapida amb script
+
+```bash
+./scripts/deploy.sh -e dev
+```
+
+---
+
+## Comandes de demostracio
 
 ```bash
 # Estat dels pods
@@ -236,14 +292,18 @@ kubectl get pods -o wide
 # Logs en temps real
 kubectl logs -f deployment/app
 
+# Escalar a 5 repliques
+kubectl scale deployment/app --replicas=5
+kubectl get pods -w
+
 # Rollback
 kubectl rollout undo deployment/app
 
 # Historial de versions
 kubectl rollout history deployment/app
 
-# Escalar
-kubectl scale deployment/app --replicas=5
+# Destruir tot
+cd terraform && terraform destroy -var-file="dev.tfvars"
 ```
 
 ---
