@@ -34,19 +34,25 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        
+
+        # Healthcheck endpoint (no compta visites)
+        if self.path == '/health':
+            response = {"status": "healthy"}
+            self.wfile.write(json.dumps(response).encode())
+            return
+
         visits = None
         if db_conn:
             try:
                 with db_conn.cursor() as cur:
-                    # Registrar visita
+                    # Registrar visita (només paths reals, no healthchecks)
                     cur.execute("INSERT INTO visits (path) VALUES (%s)", (self.path,))
                     # Comptar total
                     cur.execute("SELECT COUNT(*) FROM visits")
                     visits = cur.fetchone()[0]
             except Exception as e:
                 visits = f"DB error: {e}"
-        
+
         response = {
             "status": "ok",
             "message": "Hello from Python backend!",
