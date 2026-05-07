@@ -28,12 +28,14 @@ usage() {
     echo "  -d, --destroy      Destrueix la infraestructura"
     echo "  -s, --status       Mostra l'estat actual"
     echo "  -r, --rollback     Rollback a la versió anterior"
+    echo "  -c, --clean        Clean start: esborra tot i redesplega"
     echo "  -h, --help         Mostra aquest missatge"
     echo ""
     echo "Exemples:"
     echo "  $0 -e dev          # Desplegament a dev"
     echo "  $0 -e staging      # Desplegament a staging"
     echo "  $0 -e prod -t v3   # Desplegament a prod amb tag v3"
+    echo "  $0 -c -e dev       # Clean start amb dev"
     echo "  $0 -r              # Rollback"
     exit 1
 }
@@ -45,6 +47,7 @@ PLAN_ONLY=false
 DESTROY=false
 STATUS=false
 ROLLBACK=false
+CLEAN=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -54,6 +57,7 @@ while [[ $# -gt 0 ]]; do
         -d|--destroy) DESTROY=true; shift ;;
         -s|--status) STATUS=true; shift ;;
         -r|--rollback) ROLLBACK=true; shift ;;
+        -c|--clean) CLEAN=true; shift ;;
         -h|--help) usage ;;
         *) echo -e "${RED}Opció desconeguda: $1${NC}"; usage ;;
     esac
@@ -75,11 +79,35 @@ fi
 echo -e "${BLUE}Environment: ${YELLOW}$ENV${NC}"
 echo ""
 
+# Clean start
+if [ "$CLEAN" = true ]; then
+    echo -e "${RED}═══ CLEAN START ═══${NC}"
+    echo ""
+    echo -e "${YELLOW}[1/6]${NC} Esborrant Minikube..."
+    minikube delete 2>/dev/null || true
+    echo -e "${GREEN}      ✓ Minikube esborrat${NC}"
+
+    echo -e "${YELLOW}[2/6]${NC} Netejant Docker..."
+    docker system prune -a --volumes -f 2>/dev/null || true
+    echo -e "${GREEN}      ✓ Docker netejat${NC}"
+
+    echo -e "${YELLOW}[3/6]${NC} Netejant Terraform state..."
+    rm -rf "$TERRAFORM_DIR/.terraform" "$TERRAFORM_DIR/terraform.tfstate"* "$TERRAFORM_DIR/tfplan" 2>/dev/null || true
+    echo -e "${GREEN}      ✓ Terraform state netejat${NC}"
+    echo ""
+fi
+
+# Configurar password BD si no està definida
+if [ -z "${TF_VAR_db_password:-}" ]; then
+    export TF_VAR_db_password="gsx123"
+    echo -e "${YELLOW}Info:${NC} Usant password per defecte (TF_VAR_db_password=gsx123)"
+fi
+
 # Verificar Minikube
 echo -e "${YELLOW}[1/5]${NC} Verificant Minikube..."
 if ! minikube status &>/dev/null; then
     echo -e "${YELLOW}      Minikube no està actiu. Iniciant...${NC}"
-    minikube start
+    minikube start --memory=2048 --cpus=2
 fi
 echo -e "${GREEN}      ✓ Minikube actiu${NC}"
 
@@ -167,9 +195,16 @@ if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
     # Esperar que els pods estiguin llestos
     echo ""
     echo -e "${YELLOW}[5/5]${NC} Esperant pods..."
-    kubectl rollout status deployment/app --timeout=120s
+    kubectl rollout status deployment/postgres --timeout=120s
     kubectl rollout status deployment/nginx --timeout=60s
-    
+    kubectl rollout status deployment/app --timeout=120s
+
+    # Reiniciar app per assegurar connexió a postgres
+    echo ""
+    echo -e "${YELLOW}      Reiniciant app per connectar a PostgreSQL...${NC}"
+    kubectl rollout restart deployment/app
+    kubectl rollout status deployment/app --timeout=120s
+
     echo ""
     echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}║   ✅ Desplegament $ENV completat! ✅   ║${NC}"
@@ -178,7 +213,10 @@ if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
     kubectl get pods
     echo ""
     echo -e "${YELLOW}Accés:${NC}"
-    echo "  kubectl port-forward service/nginx 8888:80 --address 0.0.0.0"
+    echo "  kubectl port-forward service/nginx 8080:80 --address 0.0.0.0"
+    echo ""
+    echo -e "${YELLOW}Provar:${NC}"
+    echo "  curl http://localhost:8080/api"
 else
     rm -f tfplan
     echo -e "${YELLOW}Cancel·lat${NC}"
