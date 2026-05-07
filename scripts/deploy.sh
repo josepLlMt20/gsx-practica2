@@ -212,11 +212,28 @@ if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
     echo ""
     kubectl get pods
     echo ""
-    echo -e "${YELLOW}Accés:${NC}"
-    echo "  kubectl port-forward service/nginx 8080:80 --address 0.0.0.0"
+
+    # Matar port-forward antic si existeix
+    pkill -f "kubectl port-forward service/nginx" 2>/dev/null || true
+    sleep 1
+
+    # Iniciar port-forward en background
+    echo -e "${YELLOW}Iniciant port-forward...${NC}"
+    kubectl port-forward service/nginx 8080:80 --address 0.0.0.0 &>/dev/null &
+    sleep 2
+
+    # Verificar que funciona
+    echo -e "${YELLOW}Verificant connexió...${NC}"
+    if curl -s http://localhost:8080/api | grep -q "status"; then
+        echo -e "${GREEN}✓ API funcionant correctament${NC}"
+        curl -s http://localhost:8080/api | head -c 200
+        echo ""
+    else
+        echo -e "${RED}⚠ No s'ha pogut connectar. Prova manualment:${NC}"
+        echo "  kubectl port-forward service/nginx 8080:80 --address 0.0.0.0"
+    fi
     echo ""
-    echo -e "${YELLOW}Provar:${NC}"
-    echo "  curl http://localhost:8080/api"
+    echo -e "${YELLOW}Accés:${NC} http://localhost:8080"
 else
     rm -f tfplan
     echo -e "${YELLOW}Cancel·lat${NC}"
